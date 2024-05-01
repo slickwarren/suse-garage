@@ -10,11 +10,11 @@ ssh $SSH_USER@$SERVER_1 "curl -sfL https://get.k3s.io | K3S_TOKEN=thisisahardpas
 
 ssh $SSH_USER@$SERVER_2 "curl -sfL https://get.k3s.io | K3S_TOKEN=thisisahardpassword INSTALL_K3S_VERSION=$K8S_VERSION sh -s - server --server https://$SERVER_0:6443 --node-name=server2"&
 if [ $SSH_USER == "root" ]; then
-    scp ~/Github/suse-garage/rancher-local/k3s-ha/.remote_script.sh $SSH_USER@$SERVER_0:/root/
+    scp ~/.remote_script.sh $SSH_USER@$SERVER_0:/root/
     ssh $SSH_USER@$SERVER_0 "sudo su -c 'chmod 777 /root/.remote_script.sh && export SERVER_0=$SERVER_0 && export SERVER_1=$SERVER_1 && export SERVER_2=$SERVER_2 && . ./.remote_script.sh'"
 
 else
-    scp ~/Github/suse-garage/rancher-local/k3s-ha/.remote_script.sh $SSH_USER@$SERVER_0:/home/$SSH_USER/
+    scp ~/.remote_script.sh $SSH_USER@$SERVER_0:/home/$SSH_USER/
     ssh $SSH_USER@$SERVER_0 "sudo su -c 'chmod 777 /home/$SSH_USER/.remote_script.sh && cd /home/$SSH_USER && export SERVER_0=$SERVER_0 && export SERVER_1=$SERVER_1 && export SERVER_2=$SERVER_2 && . ./.remote_script.sh'"
 fi
 
@@ -47,7 +47,20 @@ else
 fi
 wait
 
-
 kubectl -n cattle-system rollout status deploy/rancher
-kubectl get secret --namespace cattle-system bootstrap-secret -o go-template='{{ .data.bootstrapPassword|base64decode}}{{ "\n" }}'
+
+jsonOutput=$(curl --insecure -d '{"username" : "admin", "password" : "admin", "responseType" : "json"}'  https://$SERVER_0.sslip.io/v3-public/localproviders/local?action=login)
+
+token=$(echo $jsonOutput | jq -cr .token)
+userID=$(echo $jsonOutput | jq -cr .userId)
+
+jsonData=$( jq -n --arg password "$RANCHER_PASSWORD" '{"newPassword" : $password}')
+curl --insecure --user "$token" -X POST -H 'Accept: application/json' -H 'Content-Type: application/json' -d "$jsonData" https://$SERVER_0.sslip.io/v3/users/$userID?action=setpassword
+
+jsonData=$( jq -n --arg server "https://$SERVER_0.sslip.io" '{"name": "server-url", "value": $server}')
+curl --insecure --user "$token" -X PUT -H 'Accept: application/json' -H 'Content-Type: application/json' -d "$jsonData" https://$SERVER_0.sslip.io/v3/settings/server-url
+
 echo $SERVER_0.sslip.io
+echo $RANCHER_PASSWORD
+
+echo $token
