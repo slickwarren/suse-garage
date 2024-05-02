@@ -40,7 +40,7 @@ helm repo update
 helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.11.0&
 
 if [ $HELM_NAME_RANCHER = "staging-prime" ]; then
-    helm install rancher $HELM_NAME_RANCHER/rancher --version $VERSION --namespace cattle-system --set bootstrapPassword=admin --set hostname=$SERVER_0.sslip.io  --set rancherImageTag=$RANCHER_IMAGE --set rancherImage=$RANCHER_REPO --set 'extraEnv[0].name=CATTLE_AGENT_IMAGE' --set \'extraEnv[0].value=stgregistry.suse.com/rancher/rancher-agent:$RANCHER_IMAGE\' --set 'extraEnv[1].name=RANCHER_PRIME' --set \"extraEnv[1].value='true'\" --set 'extraEnv[2].name=CATTLE_UI_BRAND' --set 'extraEnv[2].value=suse'&
+    helm install rancher $HELM_NAME_RANCHER/rancher --version $VERSION --namespace cattle-system --set bootstrapPassword=admin --set hostname=$SERVER_0.sslip.io  --set rancherImageTag=$RANCHER_IMAGE --set rancherImage=stgregistry.suse.com/$RANCHER_REPO --set 'extraEnv[0].name=CATTLE_AGENT_IMAGE' --set \'extraEnv[0].value=stgregistry.suse.com/rancher/rancher-agent:$RANCHER_IMAGE\' --set 'extraEnv[1].name=RANCHER_PRIME' --set \"extraEnv[1].value='true'\" --set 'extraEnv[2].name=CATTLE_UI_BRAND' --set 'extraEnv[2].value=suse'&
 
 else
     helm install rancher $HELM_NAME_RANCHER/rancher --version $VERSION --namespace cattle-system --set bootstrapPassword=admin --set hostname=$SERVER_0.sslip.io  --set rancherImageTag=$RANCHER_IMAGE --set rancherImage=$RANCHER_REPO 

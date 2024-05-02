@@ -5,7 +5,7 @@
 ### If manually providing nodes, uncomment the below block and fill in your IP addresses
 # export SERVER_0=<ip0>
 # export SERVER_1=<ip1>
-# export SERVER_2=4<ip2>
+# export SERVER_2=<ip2>
 
 ### If using integration with cloud-cli-helpers + linode, uncomment this block to create the server e2e
 # linode-create-3
