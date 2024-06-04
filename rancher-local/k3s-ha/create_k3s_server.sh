@@ -1,14 +1,28 @@
 #!/bin/bash
 
-ssh $SSH_USER@$SERVER_0 "ls -la"
-ssh $SSH_USER@$SERVER_1 "ls -la"
-ssh $SSH_USER@$SERVER_2 "ls -la"
+ssh -o StrictHostKeyChecking=accept-new $SSH_USER@$SERVER_0 "ls -la"
+ssh -o StrictHostKeyChecking=accept-new $SSH_USER@$SERVER_1 "ls -la"
+ssh -o StrictHostKeyChecking=accept-new $SSH_USER@$SERVER_2 "ls -la"
 
-ssh $SSH_USER@$SERVER_0 "curl -sfL https://get.k3s.io | K3S_TOKEN=thisisahardpassword INSTALL_K3S_VERSION=$K8S_VERSION sh -s - server --cluster-init --node-name=initnode"
+if [ -z $HARDENED ]; then
+    echo "Not hardening cluster..."
+else
+    if [ $HARDENED == "true" ]; then
+        echo "Hardening nodes in cluster"
+        . $REPO_PATH/harden.sh $SERVER_0&
+        . $REPO_PATH/harden.sh $SERVER_1&
+        . $REPO_PATH/harden.sh $SERVER_2&
+        wait
+    else
+        echo "Not hardening cluster..."
+    fi
+fi
 
-ssh $SSH_USER@$SERVER_1 "curl -sfL https://get.k3s.io | K3S_TOKEN=thisisahardpassword INSTALL_K3S_VERSION=$K8S_VERSION sh -s - server --server https://$SERVER_0:6443 --node-name=server1"&
+ssh -o StrictHostKeyChecking=accept-new $SSH_USER@$SERVER_0 "curl -sfL https://get.k3s.io | K3S_TOKEN=thisisahardpassword INSTALL_K3S_VERSION=$K8S_VERSION sh -s - server --cluster-init --node-name=initnode"
 
-ssh $SSH_USER@$SERVER_2 "curl -sfL https://get.k3s.io | K3S_TOKEN=thisisahardpassword INSTALL_K3S_VERSION=$K8S_VERSION sh -s - server --server https://$SERVER_0:6443 --node-name=server2"&
+ssh -o StrictHostKeyChecking=accept-new $SSH_USER@$SERVER_1 "curl -sfL https://get.k3s.io | K3S_TOKEN=thisisahardpassword INSTALL_K3S_VERSION=$K8S_VERSION sh -s - server --server https://$SERVER_0:6443 --node-name=server1"&
+
+ssh -o StrictHostKeyChecking=accept-new $SSH_USER@$SERVER_2 "curl -sfL https://get.k3s.io | K3S_TOKEN=thisisahardpassword INSTALL_K3S_VERSION=$K8S_VERSION sh -s - server --server https://$SERVER_0:6443 --node-name=server2"&
 if [ $SSH_USER == "root" ]; then
     scp ~/.remote_script.sh $SSH_USER@$SERVER_0:/root/
     ssh $SSH_USER@$SERVER_0 "sudo su -c 'chmod 777 /root/.remote_script.sh && export SERVER_0=$SERVER_0 && export SERVER_1=$SERVER_1 && export SERVER_2=$SERVER_2 && . ./.remote_script.sh'"
@@ -40,12 +54,13 @@ helm repo update
 helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.11.0&
 
 if [ $HELM_NAME_RANCHER = "staging-prime" ]; then
-    helm install rancher $HELM_NAME_RANCHER/rancher --version $VERSION --namespace cattle-system --set bootstrapPassword=admin --set hostname=$SERVER_0.sslip.io  --set rancherImageTag=$RANCHER_IMAGE --set rancherImage=stgregistry.suse.com/$RANCHER_REPO --set 'extraEnv[0].name=CATTLE_AGENT_IMAGE' --set \'extraEnv[0].value=stgregistry.suse.com/rancher/rancher-agent:$RANCHER_IMAGE\' --set 'extraEnv[1].name=RANCHER_PRIME' --set \"extraEnv[1].value='true'\" --set 'extraEnv[2].name=CATTLE_UI_BRAND' --set 'extraEnv[2].value=suse'&
+    helm install rancher $HELM_NAME_RANCHER/rancher --version $VERSION --namespace cattle-system --set bootstrapPassword=admin --set hostname=$SERVER_0.sslip.io  --set rancherImageTag=$RANCHER_IMAGE --set rancherImage=$RANCHER_REPO/rancher --set 'extraEnv[0].name=CATTLE_AGENT_IMAGE' --set \'extraEnv[0].value=$RANCHER_REPO/rancher-agent:$RANCHER_IMAGE\' --set 'extraEnv[1].name=RANCHER_PRIME' --set \"extraEnv[1].value='true'\" --set 'extraEnv[2].name=CATTLE_UI_BRAND' --set 'extraEnv[2].value=suse'&
 
 else
-    helm install rancher $HELM_NAME_RANCHER/rancher --version $VERSION --namespace cattle-system --set bootstrapPassword=admin --set hostname=$SERVER_0.sslip.io  --set rancherImageTag=$RANCHER_IMAGE --set rancherImage=$RANCHER_REPO 
+    helm install rancher $HELM_NAME_RANCHER/rancher --version $VERSION --namespace cattle-system --set bootstrapPassword=admin --set hostname=$SERVER_0.sslip.io  --set rancherImageTag=$RANCHER_IMAGE --set rancherImage=$RANCHER_REPO/rancher&
 fi
 wait
+
 
 kubectl -n cattle-system rollout status deploy/rancher
 

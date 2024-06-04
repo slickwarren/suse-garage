@@ -53,10 +53,12 @@ http {
         listen 80;
         # listen 22;
         listen 179;
-        listen 6443;
+        # uncomment below if using non-aws nodes
+        # listen 6443;
+        # listen 2379;
+        # listen 10250;
         listen 9099;
         listen 9443;
-        listen 10250;
         listen 10254;
         listen 6783;
         listen 9796;
@@ -66,7 +68,6 @@ http {
         # listen 30000-32767;
         listen 2376;
         listen 2378;
-        listen 2379;
 
         server_name $SERVER_0.sslip.io;
         return 301 https://\$server_name\$request_uri;

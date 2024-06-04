@@ -11,20 +11,20 @@
 # linode-create-3
 # linode-wait-all-ready
 
+export REPO_PATH=/home/slickwarren/Github/suse-garage/rancher-local/k3s-ha
+
+export K8S_VERSION=v1.28.9+k3s1
+export HARDENED=true # Hardens the local cluster in order for CIS scan to pass
+export SSH_USER=root
+export RANCHER_PASSWORD="thisisahardpassword"
+export VERSION=2.9.0-alpha3
+export RANCHER_IMAGE=v2.9-head
+export RANCHER_REPO=rancher # some.internal.registry/rancher
+# export RANCHER_HELM_REPO=https://releases.rancher.com/server-charts/latest # needed if adding a new helm repo to your setup
+export HELM_NAME_RANCHER=rancher-alpha # rancher-prime, etc. 
+
 wait-for-ssh
 
-export K8S_VERSION=v1.28.8+k3s1 # v1.27.11+k3s1 must be available upstream
+. $REPO_PATH/create_k3s_server.sh
 
-export SSH_USER=root
-
-export VERSION=2.8.3 # chart version of rancher to use
-export RANCHER_IMAGE=v2.8-head # rancher version to use
-
-export RANCHER_REPO=rancher/rancher
-# export RANCHER_HELM_REPO=https://releases.rancher.com/server-charts/latest # if specified, will override helm repo with name of HELM_NAME_RANCHER
-export HELM_NAME_RANCHER=rancher-latest # staging-prime this can be an existing name in your helm repo list
-
-export RANCHER_PASSWORD="use-a-better-password" # password for logging in to rancher setup. 
-
-. ./home/slickwarren/Github/suse-garage/rancher-local/k3s-ha/create_k3s_server.sh
 ```
