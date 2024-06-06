@@ -14,17 +14,20 @@
 export REPO_PATH=/home/slickwarren/Github/suse-garage/rancher-local/k3s-ha
 
 export K8S_VERSION=v1.28.9+k3s1
-export HARDENED=true # Hardens the local cluster in order for CIS scan to pass
+export HARDENED=true
 export SSH_USER=root
 export RANCHER_PASSWORD="thisisahardpassword"
-export VERSION=2.9.0-alpha3
-export RANCHER_IMAGE=v2.9-head
-export RANCHER_REPO=rancher # some.internal.registry/rancher
+export RANCHER_CHART_VERSION=2.8.4
+export VERSION=v2.8.4
+export RANCHER_REPO=rancher # registry/rancher
+export RANCHER_IMAGE=rancher # rancher
 # export RANCHER_HELM_REPO=https://releases.rancher.com/server-charts/latest # needed if adding a new helm repo to your setup
-export HELM_NAME_RANCHER=rancher-alpha # rancher-prime, etc. 
+export HELM_NAME_RANCHER=rancher-latest # staging-prime
+
 
 wait-for-ssh
 
 . $REPO_PATH/create_k3s_server.sh
+
 
 ```
