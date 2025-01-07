@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "begin creating k3s cluster..."
+
 ssh -o StrictHostKeyChecking=accept-new $SSH_USER@$SERVER_0 "ls -la"
 ssh -o StrictHostKeyChecking=accept-new $SSH_USER@$SERVER_1 "ls -la"
 ssh -o StrictHostKeyChecking=accept-new $SSH_USER@$SERVER_2 "ls -la"
@@ -34,10 +36,12 @@ fi
 
 wait
 
+echo "getting kubeconfig from k3s"
 ssh $SSH_USER@$SERVER_0 "sudo cat /etc/rancher/k3s/k3s.yaml" > ~/.k3s_kubeconfig.yaml
 sed -i 's/127.0.0.1/'$SERVER_0'/g' ~/.k3s_kubeconfig.yaml
 export KUBECONFIG=~/.k3s_kubeconfig.yaml
 
+echo "installing certmanager on k3s cluster"
 kubectl get nodes&
 kubectl create namespace cattle-system&
 kubectl create namespace cert-manager&
@@ -52,3 +56,5 @@ wait
 helm repo update
 
 helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.15.2&
+
+echo "k3s cluster setup complete"

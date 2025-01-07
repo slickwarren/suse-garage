@@ -4,17 +4,21 @@ export REPO_PATH=$(realpath $(dirname ${BASH_SOURCE[0]}))
 
 . $REPO_PATH/e2e.env
 
+echo "creating nodes on $PROVIDER via terraform"
 cd $REPO_PATH/../../terraform/$PROVIDER
+pwd
+ls
+
 terraform init
 terraform apply --auto-approve
 
+echo "getting IP of nodes created via harvester on $PROVIDER"
 . $REPO_PATH/ips_from_terraform.sh
 cd $REPO_PATH
 
+echo "waiting for ssh to be available on created nodes"
 eval `ssh-agent -s`
-
 ssh-add -k $SSH_PATH
-
 wait-for-ssh()
 {
   export server0Access=1
@@ -24,7 +28,7 @@ wait-for-ssh()
   while (( $server0Access != 0 && $server1Access != 0 && $server2Access != 0 ));
   do
     if [[ $server0Access != 0 ]]; then
-      export sshOutput=$(ssh -i $SSH_KEY_PATH -o StrictHostKeyChecking=accept-new $SSH_USER@$SERVER_0 "ls -la" 2>&1)
+      export sshOutput=$(ssh -i $SSH_PATH -o StrictHostKeyChecking=accept-new $SSH_USER@$SERVER_0 "ls -la" 2>&1)
       if [[ $sshOutput != *"$connectionRefused"* ]]; then
         export server0Access=0
         continue;
@@ -32,7 +36,7 @@ wait-for-ssh()
     fi
 
     if [[ $server1Access != 0 ]]; then
-      export sshOutput=$(ssh -i -o StrictHostKeyChecking=accept-new $SSH_KEY_PATH $SSH_USER@$SERVER_1 "ls -la" 2>&1)
+      export sshOutput=$(ssh -i -o StrictHostKeyChecking=accept-new $SSH_PATH $SSH_USER@$SERVER_1 "ls -la" 2>&1)
       if [[ $sshOutput != *"$connectionRefused"* ]]; then
         export server1Access=0
         continue;
@@ -41,7 +45,7 @@ wait-for-ssh()
 
 
     if [[ $server2Access != 0 ]]; then
-      export sshOutput=$(ssh -i -o StrictHostKeyChecking=accept-new $SSH_KEY_PATH $SSH_USER@$SERVER_2 "ls -la" 2>&1)
+      export sshOutput=$(ssh -i -o StrictHostKeyChecking=accept-new $SSH_PATH $SSH_USER@$SERVER_2 "ls -la" 2>&1)
       if [[ $sshOutput != *"$connectionRefused"* ]]; then
         export server2Access=0
         continue;
@@ -51,7 +55,6 @@ wait-for-ssh()
   sleep 20
   echo "K3s Server Nodes ready for ssh"
 }
-
 wait-for-ssh
 
 . $REPO_PATH/create_k3s_server.sh
