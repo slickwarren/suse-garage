@@ -5,6 +5,7 @@ export REPO_PATH=$(realpath $(dirname ${BASH_SOURCE[0]}))
 . $REPO_PATH/e2e.env
 
 cd $REPO_PATH/../../terraform/$PROVIDER
+terraform init
 terraform apply --auto-approve
 
 . $REPO_PATH/ips_from_terraform.sh

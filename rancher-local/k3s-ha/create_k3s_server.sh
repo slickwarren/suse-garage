@@ -24,11 +24,11 @@ ssh -o StrictHostKeyChecking=accept-new $SSH_USER@$SERVER_1 "curl -sfL https://g
 
 ssh -o StrictHostKeyChecking=accept-new $SSH_USER@$SERVER_2 "curl -sfL https://get.k3s.io | K3S_TOKEN=thisisahardpassword INSTALL_K3S_VERSION=$K8S_VERSION sh -s - server --server https://$SERVER_0:6443 --node-name=server2"&
 if [ $SSH_USER == "root" ]; then
-    scp ~/.remote_script.sh $SSH_USER@$SERVER_0:/root/
+    scp $REPO_PATH/.remote_script.sh $SSH_USER@$SERVER_0:/root/
     ssh $SSH_USER@$SERVER_0 "sudo su -c 'chmod 777 /root/.remote_script.sh && export SERVER_0=$SERVER_0 && export SERVER_1=$SERVER_1 && export SERVER_2=$SERVER_2 && . ./.remote_script.sh'"
 
 else
-    scp ~/.remote_script.sh $SSH_USER@$SERVER_0:/home/$SSH_USER/
+    scp $REPO_PATH/.remote_script.sh $SSH_USER@$SERVER_0:/home/$SSH_USER/
     ssh $SSH_USER@$SERVER_0 "sudo su -c 'chmod 777 /home/$SSH_USER/.remote_script.sh && cd /home/$SSH_USER && export SERVER_0=$SERVER_0 && export SERVER_1=$SERVER_1 && export SERVER_2=$SERVER_2 && . ./.remote_script.sh'"
 fi
 

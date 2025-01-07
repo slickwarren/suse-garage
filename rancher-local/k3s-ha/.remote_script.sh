@@ -54,9 +54,9 @@ http {
         # listen 22;
         listen 179;
         # uncomment below if using non-aws nodes
-        # listen 6443;
-        # listen 2379;
-        # listen 10250;
+        listen 6443;
+        listen 2379;
+        listen 10250;
         listen 9099;
         listen 9443;
         listen 10254;
