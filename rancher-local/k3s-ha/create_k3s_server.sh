@@ -48,13 +48,16 @@ kubectl create namespace cert-manager&
 helm repo add jetstack https://charts.jetstack.io&
 if [ -z "$(helm repo list | grep $HELM_NAME_RANCHER)" ]; then
     helm repo add $HELM_NAME_RANCHER $RANCHER_HELM_REPO&
+    echo "added rancher helm repo"
 fi
+wait
 
 kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.15.2/cert-manager.crds.yaml
-wait
 
 helm repo update
 
 helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.15.2&
+
+wait
 
 echo "k3s cluster setup complete"
