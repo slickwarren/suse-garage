@@ -1,5 +1,7 @@
 #! /bin/bash
 
+set -e
+
 export REPO_PATH=$(realpath $(dirname ${BASH_SOURCE[0]})) 
 
 . $REPO_PATH/e2e.env

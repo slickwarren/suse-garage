@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 echo "begin creating k3s cluster..."
 
 ssh -o StrictHostKeyChecking=accept-new $SSH_USER@$SERVER_0 "ls -la"
