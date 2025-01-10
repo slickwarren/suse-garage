@@ -1,46 +1,12 @@
-# resource "harvester_clusternetwork" "cluster-vlan" {
-#   name = "auto-vlan"
-# }
 
-# resource "harvester_vlanconfig" "cluster-vlan-node1" {
-#   name = "cluster-vlan-node1"
-
-#   cluster_network_name = harvester_clusternetwork.cluster-vlan.name
-
-#   uplink {
-#     nics = [
-#       "eno50"
-#     ]
-
-#     bond_mode = "active-backup"
-#     mtu       = 1500
-#   }
-# }
-
-# resource "harvester_network" "mgmt-vlan1-drlatest" {
-#   name      = "mgmt-vlan1-drlatest"
-#   namespace = "default"
-
-#   vlan_id = 2011
-
-#   route_mode           = "auto"
-#   route_dhcp_server_ip = ""
-
-#   cluster_network_name = var.NETWORK_NAME
-# }
-
-# resource "harvester_image" "ubuntu2204-jammy-drlatest" {
-#   name      = "ubuntu-2204-drlatest"
-#   namespace = "default"
-#   storage_class_name = "harvester-longhorn"
-#   display_name = "jammy-server-cloudimg-amd64-disk-kvm-drlatest.img"
-#   source_type  = "download"
-#   url          = "https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64-disk-kvm.img"
-# }
-
+resource "random_string" "random_suffix" {
+  length  = 3
+  special = false
+  upper   = false
+}
 
 resource "harvester_ssh_key" "drlatest-ssh-key" {
-  name      = "drlatest-ssh-key"
+  name      = "drlatest-ssh-key-${random_string.random_suffix.result}"
   namespace = "default"
 
   public_key = var.SSH_KEY
@@ -64,7 +30,7 @@ locals {
 
 resource "kubernetes_secret" "drlatest-cloud-config-secret" {
   metadata {
-    name      = "drlatest-cc-secret"
+    name      = "drlatest-cc-secret-${random_string.random_suffix.result}"
     namespace = "default"
     labels = {
       "sensitive" = "false"
@@ -75,13 +41,14 @@ resource "kubernetes_secret" "drlatest-cloud-config-secret" {
   } 
 }
 
+
 resource "harvester_virtualmachine" "drlatest-vm" {
   for_each = {1: "1", 2: "2", 3: "3"}
 
   depends_on = [
     kubernetes_secret.drlatest-cloud-config-secret
   ]
-  name                 = "${var.DRLATEST_NAME}${each.value}"
+  name                 = "${var.DRLATEST_NAME}${each.value}-${random_string.random_suffix.result}"
   namespace            = "default"
   restart_after_update = true
 
@@ -97,7 +64,7 @@ resource "harvester_virtualmachine" "drlatest-vm" {
   secure_boot = false
 
   run_strategy = "RerunOnFailure"
-  hostname     = var.DRLATEST_NAME
+  hostname     = "${var.DRLATEST_NAME}${each.value}-${random_string.random_suffix.result}"
   machine_type = "q35"
 
   ssh_keys = [
@@ -124,7 +91,7 @@ resource "harvester_virtualmachine" "drlatest-vm" {
   }
 
   cloudinit {
-    user_data_secret_name = "drlatest-cc-secret"
+    user_data_secret_name = "drlatest-cc-secret-${random_string.random_suffix.result}"
     network_data = ""
   }
 }

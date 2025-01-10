@@ -8,8 +8,6 @@ export REPO_PATH=$(realpath $(dirname ${BASH_SOURCE[0]}))
 
 echo "creating nodes on $PROVIDER via terraform"
 cd $REPO_PATH/../../terraform/$PROVIDER
-pwd
-ls
 
 terraform init
 terraform apply --auto-approve
@@ -61,3 +59,4 @@ wait-for-ssh
 
 . $REPO_PATH/create_k3s_server.sh
 . $REPO_PATH/install_rancher_on_cluster.sh
+cd $REPO_PATH
