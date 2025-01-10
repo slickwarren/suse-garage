@@ -75,13 +75,19 @@ resource "kubernetes_secret" "drlatest-cloud-config-secret" {
   } 
 }
 
+resource "random_string" "random_suffix" {
+  length  = 3
+  special = false
+  upper   = false
+}
+
 resource "harvester_virtualmachine" "drlatest-vm" {
   for_each = {1: "1", 2: "2", 3: "3"}
 
   depends_on = [
     kubernetes_secret.drlatest-cloud-config-secret
   ]
-  name                 = "${var.DRLATEST_NAME}${each.value}"
+  name                 = "${var.DRLATEST_NAME}${each.value}-${random_string.random_suffix.result}"
   namespace            = "default"
   restart_after_update = true
 
